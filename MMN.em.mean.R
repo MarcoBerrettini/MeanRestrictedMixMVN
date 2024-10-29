@@ -1,8 +1,6 @@
 library(mvtnorm)
-#library(clusterGeneration)
 
-mmn.em_mean<-function(y,k,memb=NULL,q=4,ort=TRUE,test=NULL,it=1000,eps=0.0000001,seme=7,val.init=NULL,init="momenti",model.name=c("VVV","VVV","U"),
-                      m=1)
+mmn.em_mean<-function(y,k,memb=NULL,q=4,ort=TRUE,test=NULL,it=1000,eps=0.0000001,seme=7,val.init=NULL,init="momenti",model.name=c("VVV","VVV","U"),m=1)
 {
   
   ## model.name can be:
@@ -59,9 +57,6 @@ mmn.em_mean<-function(y,k,memb=NULL,q=4,ort=TRUE,test=NULL,it=1000,eps=0.0000001
     
     if (k>1) {
       if(is.null(memb)) memb<-kmeans(yy,k)$cl
-      #if(n>r*p) {memb <- summary(Mclust(yy, modelName = "VVV", G = k))$classification}
-      #else {
-      #memb <- summary(Mclust(yy, modelName = "VVI", G = k))$classification#}
     }
     else {memb=rep(1,n)}
     for  (i in 1:k) {
@@ -85,7 +80,6 @@ mmn.em_mean<-function(y,k,memb=NULL,q=4,ort=TRUE,test=NULL,it=1000,eps=0.0000001
         delta[i] <- nu[1,i] + mu[1,i]
         nu[,i] <- nu[,i] - nu[1,i]
         mu[,i] <- mu[,i] - mu[1,i]
-        #M[,,i]  <- matrix(mu[,i], r, p) + matrix(nu[,i], r, p, byrow = TRUE) + delta
         M[,,i] <- matrix(mu[,i], r, p) + matrix(nu[,i], r, p, byrow = TRUE) + mu[,i]%*%t(nu[,i]) + delta[i]
       }
       if(model.name[3] == "GI"){
@@ -99,7 +93,6 @@ mmn.em_mean<-function(y,k,memb=NULL,q=4,ort=TRUE,test=NULL,it=1000,eps=0.0000001
         beta[,i] <- SVD$v[,1]*sqrt(SVD$d[1])
         beta[,i] <- beta[,i] - beta[1,i]
         beta[,i] <- beta[,i]/beta[2,i]
-        #M[,,i] <- M[,,i] + alfa[,i] %*% t(beta[,i])
         M[,,i] <- matrix(mu[,i], r, p) + matrix(nu[,i], r, p, byrow = TRUE) + alfa[,i]%*%t(beta[,i]) + delta[i]
       }
       if(model.name[3] == "PI"){
@@ -113,7 +106,6 @@ mmn.em_mean<-function(y,k,memb=NULL,q=4,ort=TRUE,test=NULL,it=1000,eps=0.0000001
         beta[,i] <- SVD$v[,1]*sqrt(SVD$d[1])
         beta[,i] <- beta[,i] - beta[1,i]
         beta[,i] <- beta[,i]/beta[2,i]
-        #M[,,i] <- M[,,i] + alfa[,i] %*% t(beta[,i])
         b[,i] <- lm(alfa[,i] ~ Q - 1)$coefficients
         a[,i] <- lm(mu[,i] ~ Q - 1)$coefficients
         alfa[-(1:2),i] <- Q[-(1:2),]%*%b[,i]
@@ -126,7 +118,6 @@ mmn.em_mean<-function(y,k,memb=NULL,q=4,ort=TRUE,test=NULL,it=1000,eps=0.0000001
         beta[,i] <- SVD$v[,1]*sqrt(SVD$d[1])
         alfa[,i] <- SVD$u[,1]*sqrt(SVD$d[1])*beta[1,i]
         beta[,i] <- beta[,i]/beta[1,i]
-        #M[,,i] <- M[,,i] + alfa[,i] %*% t(beta[,i])
         b[,i] <- lm(alfa[,i] ~ Q - 1)$coefficients
       }
     }
@@ -317,7 +308,6 @@ mmn.em_mean<-function(y,k,memb=NULL,q=4,ort=TRUE,test=NULL,it=1000,eps=0.0000001
       }
       
       if(sum(f.y.z.star > log(.Machine$double.xmax))>0){
-        #cat(paste0("iter ", hh, ": sum(f.y.z.star > log(.Machine$double.xmax))>0 \n"))
         f.y.z.star[which(rowSums(f.y.z.star > log(.Machine$double.xmax))>0),] = 
           f.y.z.star[which(rowSums(f.y.z.star > log(.Machine$double.xmax))>0),] -
           f.y.z.star[which(rowSums(f.y.z.star > log(.Machine$double.xmax))>0),] + 
@@ -730,9 +720,8 @@ mmn.em_mean<-function(y,k,memb=NULL,q=4,ort=TRUE,test=NULL,it=1000,eps=0.0000001
   M=M.old
   f.z.y=f.z.y.old
   
-  lik = sum(rowLogSumExps(matrix(log(w),n,k,byrow=TRUE) + f.y.z)) #sum(log(w%*%t(f.y.z)))
+  lik = sum(rowLogSumExps(matrix(log(w),n,k,byrow=TRUE) + f.y.z))
   
-  #if(lik == - Inf) lik = -.Machine$double.xmax
   if(!is.null(test)){
     f.y.z.test <- matrix(0,dim(y.test)[3],k)
     for (i in 1:k) f.y.z.test[,i]=dmm(y.test,M[,,i],U[,,i],V[,,i], log = TRUE)
@@ -770,7 +759,6 @@ mmn.em_mean<-function(y,k,memb=NULL,q=4,ort=TRUE,test=NULL,it=1000,eps=0.0000001
   if (model.name[3]=="PI")  h3=2*p+2*q-5
   if (model.name[3]=="PIO")  h3=2*p+q-2
   
-  #h=k-1+k*(p*r)+h1+h2
   h=k-1+k*h3+h1+h2
   
   aic=-2*lik+2*h
@@ -820,37 +808,9 @@ rmm=function(r,M,U,V)
 
 dmm=function(y,M,U,V,log=FALSE)
 {
-  #if (det(V)<1.0e-30){ 
-  #print(V)
-  #  diag(V)=diag(V)+0.1
-  #  cat(paste0("det(V)<1.0e-30 \n"))
-  #}
-  #  if(!isSymmetric(V)){
-  #    cat(paste0("!isSymmetric(V) \n"))
-  #    V[lower.tri(V)] <- t(V)[lower.tri(V)]
-  #  }
-  
-  #if (det(U)<1.0e-30){
-  #print(U)
-  #  diag(U)=diag(U)+0.1
-  #  cat(paste0("det(U)<1.0e-30 \n"))
-  #}
-  
-  # if(!isSymmetric(U)){
-  #    cat(paste0("!isSymmetric(U) \n"))
-  #    U[lower.tri(U)] <- t(U)[lower.tri(U)]
-  #  }
-  #if(!isSymmetric(U)){ 
-  #    print(U)
-  # }
-  
   r=dim(y)[1]
   p=dim(y)[2]
   n=dim(y)[3]
-  #if(!isSymmetric(U)) 
-  #print(U)
-  #if(!isSymmetric(V)) 
-  #print(V)
   sigma=V%x%U
   if (det(sigma)<1.0e-30){
     #cat(paste0(isSymmetric(sigma), " det(V%x%U)<1.0e-30 \n"))
@@ -858,18 +818,10 @@ dmm=function(y,M,U,V,log=FALSE)
   }
   if(!isSymmetric(sigma)){
     sigma[lower.tri(sigma)] <- t(sigma)[lower.tri(sigma)]
-    #if(!isSymmetric(sigma)) {print(sigma)
-    #for(i in 1:(p*r - 1)){
-    #  for(j in (i+1):(p*r)){
-    #   if(sigma[i,j] != sigma[j,i]) cat(paste(i, j, sigma[i,j], sigma[j,i], "\n"))
-    #  }
-    #}
-    #}
   }
   y=t(apply(y,3,c))
   mu=c(M)
   if (log) f.y=dmvnorm(y,mu,sigma,log=TRUE) else f.y=dmvnorm(y,mu,sigma)
-  #if (log) f.y=dmatrixnorm(y,M,U = U, V = V, log=TRUE) else f.y=dmatrixnorm(y,M,U = U, V = V)
   return(f.y)
 }
 
